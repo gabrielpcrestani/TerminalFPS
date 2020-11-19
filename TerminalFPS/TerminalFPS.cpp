@@ -1,6 +1,8 @@
 #include <iostream>
 #include <chrono>
 #include <Windows.h>
+#include <vector>
+#include <algorithm>
 
 const int nScreenWidth = 120;
 const int nScreenHeight = 40;
@@ -18,7 +20,7 @@ const float fDepth = 16.0f;
 int main()
 {
 	// Create screen buffer
-	wchar_t* screen = new wchar_t[nScreenWidth * nScreenHeight];
+	wchar_t* screen = new wchar_t[nScreenWidth * nScreenHeight + 1];
 	HANDLE hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	SetConsoleActiveScreenBuffer(hConsole);
 	DWORD dwBytesWritten = 0;
@@ -91,6 +93,7 @@ int main()
 
 			float fDistanceToWall = 0;
 			bool bHitWall = false;
+			bool bBoundary = false;
 
 			float fEyeX = std::sinf(fRayAngle); // Unit vector for ray in player space
 			float fEyeY = std::cosf(fRayAngle);
@@ -112,7 +115,29 @@ int main()
 				{
 					// Ray is inbounds so test to see if the ray cell is a wall block
 					if (map[nTestY * nMapWidth + nTestX] == '#')
+					{
 						bHitWall = true;
+
+						// Corners
+						std::vector<std::pair<float, float>> p; // distance, dot product
+
+						for (int tx = 0; tx < 2; tx++)
+							for (int ty = 0; ty < 2; ty++)
+							{
+								float vx = (float)nTestX + tx - fPlayerX;
+								float vy = (float)nTestY + ty - fPlayerY;
+								float d = std::sqrt(vx * vx + vy * vy);
+								float dot = (fEyeX * vx / d) + (fEyeY * vy / d);
+								p.push_back(std::make_pair(d, dot));								
+							}
+						
+						// Sort pairs from closest to farthest
+						std::sort(p.begin(), p.end(), [](const std::pair<float, float>& left, const std::pair<float, float>& right) {return left.first < right.first; });
+
+						float fBound = 0.01f;
+						if (std::acos(p.at(0).second) < fBound)	bBoundary = true;
+						if (std::acos(p.at(1).second) < fBound)	bBoundary = true;
+					}
 				}
 			}
 			
@@ -128,6 +153,7 @@ int main()
 			else if (fDistanceToWall < fDepth)			nShade = 0x2591;
 			else										nShade = ' ';		// too far away
 				
+			if (bBoundary)	nShade = 'I';	// Black it out
 
 			for (int y = 0; y < nScreenHeight; y++)
 			{
@@ -150,7 +176,7 @@ int main()
 		}
 
 
-		screen[nScreenWidth * nScreenHeight - 1] = '\0';
+		screen[nScreenWidth * nScreenHeight] = '\0';
 		WriteConsoleOutputCharacter(hConsole, screen, nScreenWidth * nScreenHeight, { 0,0 }, &dwBytesWritten);
 	}
 
