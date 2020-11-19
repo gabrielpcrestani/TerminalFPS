@@ -20,7 +20,7 @@ const float fDepth = 16.0f;
 int main()
 {
 	// Create screen buffer
-	wchar_t* screen = new wchar_t[nScreenWidth * nScreenHeight + 1];
+	wchar_t* screen = new wchar_t[nScreenWidth * nScreenHeight];
 	HANDLE hConsole = CreateConsoleScreenBuffer(GENERIC_READ | GENERIC_WRITE, 0, NULL, CONSOLE_TEXTMODE_BUFFER, NULL);
 	SetConsoleActiveScreenBuffer(hConsole);
 	DWORD dwBytesWritten = 0;
@@ -137,6 +137,7 @@ int main()
 						float fBound = 0.01f;
 						if (std::acos(p.at(0).second) < fBound)	bBoundary = true;
 						if (std::acos(p.at(1).second) < fBound)	bBoundary = true;
+						//if (std::acos(p.at(2).second) < fBound)	bBoundary = true;
 					}
 				}
 			}
@@ -153,7 +154,7 @@ int main()
 			else if (fDistanceToWall < fDepth)			nShade = 0x2591;
 			else										nShade = ' ';		// too far away
 				
-			if (bBoundary)	nShade = 'I';	// Black it out
+			if (bBoundary)	nShade = ' ';	// Black it out
 
 			for (int y = 0; y < nScreenHeight; y++)
 			{
@@ -175,9 +176,18 @@ int main()
 			}
 		}
 
+		// Diplay stats
+		swprintf_s(screen, 43, L"X=%3.2f, Y=%3.2f, Angle=%3.2f, FPS=%3.2f", fPlayerX, fPlayerY, fPlayerAngle, 1.0f / fElapsedTime);
+		
+		// Display map
+		for (int nx = 0; nx < nMapWidth; nx++)
+			for (int ny = 0; ny < nMapHeight; ny++)
+			{
+				screen[(ny+1) * nScreenWidth + nx] = map[ny * nMapWidth + nx];
+			}
+		screen[((int)fPlayerY + 1) * nScreenWidth + (int)fPlayerX] = 'P';
 
-		screen[nScreenWidth * nScreenHeight] = '\0';
+		screen[nScreenWidth * nScreenHeight - 1] = '\0';
 		WriteConsoleOutputCharacter(hConsole, screen, nScreenWidth * nScreenHeight, { 0,0 }, &dwBytesWritten);
 	}
-
 }
