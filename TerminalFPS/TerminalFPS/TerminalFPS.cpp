@@ -31,13 +31,13 @@ int main()
 	map += L"#..............#";
 	map += L"#..............#";
 	map += L"#..............#";
+	map += L"#.........#....#";
+	map += L"#.........#....#";
 	map += L"#..............#";
 	map += L"#..............#";
 	map += L"#..............#";
 	map += L"#..............#";
-	map += L"#..............#";
-	map += L"#..............#";
-	map += L"#..............#";
+	map += L"#........#######";
 	map += L"#..............#";
 	map += L"#..............#";
 	map += L"################";
@@ -55,10 +55,20 @@ int main()
 
 		// Controls
 		// Handle CCW Rotation
+		if (GetAsyncKeyState((unsigned short)'W') & 0x8000)
+		{
+			fPlayerX += 4.0f * fElapsedTime * std::sinf(fPlayerAngle);
+			fPlayerY += 4.0f * fElapsedTime * std::cosf(fPlayerAngle);
+		}
 		if (GetAsyncKeyState((unsigned short)'A') & 0x8000)
-			fPlayerAngle -= 0.1f * fElapsedTime;
+			fPlayerAngle -= 0.8f * fElapsedTime;
+		if (GetAsyncKeyState((unsigned short)'S') & 0x8000)
+		{
+			fPlayerX -= 4.0f * fElapsedTime * std::sinf(fPlayerAngle);
+			fPlayerY -= 4.0f * fElapsedTime * std::cosf(fPlayerAngle);
+		}
 		if (GetAsyncKeyState((unsigned short)'D') & 0x8000)
-			fPlayerAngle += 0.1f * fElapsedTime;
+			fPlayerAngle += 0.8f * fElapsedTime;
 
 		for (int x = 0; x < nScreenWidth; x++)
 		{
@@ -112,8 +122,16 @@ int main()
 				else if (y <= nFloor)
 					screen[y * nScreenWidth + x] = nShade;
 				else
-					screen[y * nScreenWidth + x] = '_';
+				{
+					float b = 1.0f - ((float)y - nScreenHeight / 2.0f) / ((float)nScreenHeight / 2.0f);
+					if (b < 0.25)		nShade = '#';
+					else if (b < 0.5)	nShade = 'x';
+					else if (b < 0.75)	nShade = '.';
+					else if (b < 0.25)	nShade = '_';
+					else                nShade = ' ';
 
+					screen[y * nScreenWidth + x] = nShade;
+				}
 			}
 		}
 
