@@ -59,6 +59,13 @@ int main()
 		{
 			fPlayerX += 4.0f * fElapsedTime * std::sinf(fPlayerAngle);
 			fPlayerY += 4.0f * fElapsedTime * std::cosf(fPlayerAngle);
+
+			// Detect collision
+			if (map[(int)fPlayerY * nMapWidth + (int)fPlayerX] == '#')
+			{
+				fPlayerX -= 4.0f * fElapsedTime * std::sinf(fPlayerAngle);
+				fPlayerY -= 4.0f * fElapsedTime * std::cosf(fPlayerAngle);
+			}
 		}
 		if (GetAsyncKeyState((unsigned short)'A') & 0x8000)
 			fPlayerAngle -= 0.8f * fElapsedTime;
@@ -66,6 +73,13 @@ int main()
 		{
 			fPlayerX -= 4.0f * fElapsedTime * std::sinf(fPlayerAngle);
 			fPlayerY -= 4.0f * fElapsedTime * std::cosf(fPlayerAngle);
+			
+			// Detect collision
+			if (map[(int)fPlayerY * nMapWidth + (int)fPlayerX] == '#')
+			{
+				fPlayerX += 4.0f * fElapsedTime * std::sinf(fPlayerAngle);
+				fPlayerY += 4.0f * fElapsedTime * std::cosf(fPlayerAngle);
+			}
 		}
 		if (GetAsyncKeyState((unsigned short)'D') & 0x8000)
 			fPlayerAngle += 0.8f * fElapsedTime;
