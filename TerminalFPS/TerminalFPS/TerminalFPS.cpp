@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono>
 #include <Windows.h>
 
 const int nScreenWidth = 120;
@@ -41,9 +42,24 @@ int main()
 	map += L"#..............#";
 	map += L"################";
 
+	auto tp1 = std::chrono::system_clock::now();
+	auto tp2 = std::chrono::system_clock::now();
+
 	// Game loop
 	while (true)
 	{
+		tp2 = std::chrono::system_clock::now();
+		std::chrono::duration<float> elapsedTime = tp2 - tp1;
+		tp1 = tp2;
+		float fElapsedTime = elapsedTime.count();
+
+		// Controls
+		// Handle CCW Rotation
+		if (GetAsyncKeyState((unsigned short)'A') & 0x8000)
+			fPlayerAngle -= 0.1f * fElapsedTime;
+		if (GetAsyncKeyState((unsigned short)'D') & 0x8000)
+			fPlayerAngle += 0.1f * fElapsedTime;
+
 		for (int x = 0; x < nScreenWidth; x++)
 		{
 			// For each column, calculate the projected ray angle into world space
@@ -80,14 +96,23 @@ int main()
 			int nCeiling = (float)(nScreenHeight / 2.0) - nScreenHeight / (float)fDistanceToWall;
 			int nFloor = nScreenHeight - nCeiling;
 
+			short nShade = ' ';
+
+			if (fDistanceToWall <= fDepth / 4.0f)		nShade = 0x2588;	// very close				
+			else if (fDistanceToWall < fDepth / 3.0f)	nShade = 0x2593;
+			else if (fDistanceToWall < fDepth / 2.0f)	nShade = 0x2593;
+			else if (fDistanceToWall < fDepth)			nShade = 0x2591;
+			else										nShade = ' ';		// too far away
+				
+
 			for (int y = 0; y < nScreenHeight; y++)
 			{
 				if (y < nCeiling)
 					screen[y * nScreenWidth + x] = ' ';
 				else if (y <= nFloor)
-					screen[y * nScreenWidth + x] = '#';
+					screen[y * nScreenWidth + x] = nShade;
 				else
-					screen[y * nScreenWidth + x] = ' ';
+					screen[y * nScreenWidth + x] = '_';
 
 			}
 		}
